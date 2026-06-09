@@ -1,20 +1,20 @@
 import React, { useState, useMemo } from 'react';
-import { ShoppingCart, User, LogIn, LogOut, X, Check, Eye, EyeOff, Sparkles, Lock, Mail, Award, History, Package, ChevronRight } from 'lucide-react';
+import { ShoppingCart, User, LogIn, LogOut, X, Check, Eye, EyeOff, Sparkles, Lock, Mail, Award, History, Package, ChevronRight, Plus, Minus, Trash2 } from 'lucide-react';
 
 // === ДАННЫЕ (заглушка вместо БД) ===
 
 const CATEGORIES = ['Все', 'Футболки', 'Худи', 'Аксессуары', 'Шопперы', 'Кружки'];
-const COLLECTIONS = ['Все', 'Базовая', 'Японская коллаб', 'Эко-серия', 'Зимний дроп'];
+const COLLECTIONS = ['Все', 'Базовая', 'Вагю', 'Эко-серия', 'Зимний дроп'];
 
 const PRODUCTS = [
   { id: 1, name: 'Футболка «Молочный путь»', category: 'Футболки', collection: 'Базовая', price: 1990, sizes: ['S', 'M', 'L', 'XL'], inStock: true, color: '#fef3c7', emoji: '🥛' },
   { id: 2, name: 'Футболка «Зелёные поля»', category: 'Футболки', collection: 'Эко-серия', price: 2190, sizes: ['M', 'L', 'XL'], inStock: true, color: '#d1fae5', emoji: '🌾' },
-  { id: 3, name: 'Футболка «Бурёнка-сан»', category: 'Футболки', collection: 'Японская коллаб', price: 2490, sizes: ['S', 'M', 'L'], inStock: false, color: '#fce7f3', emoji: '🐄' },
+  { id: 3, name: 'Футболка «Бурёнка-сан»', category: 'Футболки', collection: 'Вагю', price: 2490, sizes: ['S', 'M', 'L'], inStock: false, color: '#fce7f3', emoji: '🐄' },
   { id: 4, name: 'Худи «Фермер»', category: 'Худи', collection: 'Базовая', price: 4990, sizes: ['S', 'M', 'L', 'XL'], inStock: true, color: '#dcfce7', emoji: '🚜' },
   { id: 5, name: 'Худи «Снежная буря»', category: 'Худи', collection: 'Зимний дроп', price: 5490, sizes: ['M', 'L'], inStock: true, color: '#e0f2fe', emoji: '❄️' },
-  { id: 6, name: 'Худи «Дзен»', category: 'Худи', collection: 'Японская коллаб', price: 5790, sizes: ['S', 'M', 'L', 'XL'], inStock: true, color: '#fae8ff', emoji: '🎋' },
+  { id: 6, name: 'Худи «Дзен»', category: 'Худи', collection: 'Вагю', price: 5790, sizes: ['S', 'M', 'L', 'XL'], inStock: true, color: '#fae8ff', emoji: '🎋' },
   { id: 7, name: 'Шоппер «Эко»', category: 'Шопперы', collection: 'Эко-серия', price: 890, sizes: ['One Size'], inStock: true, color: '#ecfccb', emoji: '👜' },
-  { id: 8, name: 'Шоппер «Сакура»', category: 'Шопперы', collection: 'Японская коллаб', price: 1190, sizes: ['One Size'], inStock: true, color: '#fbcfe8', emoji: '🌸' },
+  { id: 8, name: 'Шоппер «Сакура»', category: 'Шопперы', collection: 'Вагю', price: 1190, sizes: ['One Size'], inStock: true, color: '#fbcfe8', emoji: '🌸' },
   { id: 9, name: 'Кружка «Утренний кофе»', category: 'Кружки', collection: 'Базовая', price: 690, sizes: ['350мл'], inStock: true, color: '#fef3c7', emoji: '☕' },
   { id: 10, name: 'Термокружка «На ферму»', category: 'Кружки', collection: 'Базовая', price: 1490, sizes: ['450мл'], inStock: true, color: '#fed7aa', emoji: '🍵' },
   { id: 11, name: 'Носки «Травка»', category: 'Аксессуары', collection: 'Эко-серия', price: 490, sizes: ['39-41', '42-44'], inStock: true, color: '#bbf7d0', emoji: '🧦' },
@@ -38,7 +38,7 @@ const EMPLOYEE = {
   balance: 580,
 };
 
-const HISTORY = [
+const INITIAL_HISTORY = [
   { id: 1, date: '08.06.2026', desc: 'Выполнение KPI квартала', amount: 100, type: 'in' },
   { id: 2, date: '01.06.2026', desc: 'Ежемесячный бонус', amount: 50, type: 'in' },
   { id: 3, date: '25.05.2026', desc: 'Покупка худи «Команда мечты»', amount: -800, type: 'out' },
@@ -47,7 +47,7 @@ const HISTORY = [
   { id: 6, date: '15.04.2026', desc: 'Покупка эксклюзивной кружки', amount: -200, type: 'out' },
   { id: 7, date: '01.04.2026', desc: 'Ежемесячный бонус', amount: 50, type: 'in' },
   { id: 8, date: '20.03.2026', desc: 'Годовщина в компании', amount: 300, type: 'in' },
-  { id: 9, date: '1.03.2026',  desc: 'Новогодний бонус', amount: 150, type: 'in' },
+  { id: 9, date: '01.03.2026', desc: 'Новогодний бонус', amount: 150, type: 'in' },
 ];
 
 const OUTFITS = [
@@ -59,45 +59,46 @@ const OUTFITS = [
   { id: 'graduate', name: 'Выпускная', emoji: '🎓' },
 ];
 
+// === HELPERS ===
+
+const plural = (n, forms) => {
+  const a = Math.abs(n) % 100;
+  const b = a % 10;
+  if (a > 10 && a < 20) return forms[2];
+  if (b > 1 && b < 5) return forms[1];
+  if (b === 1) return forms[0];
+  return forms[2];
+};
+
+const fmtRub = (n) => `${n.toLocaleString('ru-RU')} ₽`;
+
 // === БУРЁНКА SVG ===
 
 const Cow = ({ outfit = 'none', size = 160 }) => (
   <svg viewBox="0 0 200 200" width={size} height={size}>
-    {/* Тело */}
     <ellipse cx="100" cy="140" rx="58" ry="38" fill="white" stroke="#1f2937" strokeWidth="3"/>
     <ellipse cx="78" cy="130" rx="13" ry="9" fill="#1f2937"/>
     <ellipse cx="125" cy="148" rx="11" ry="7" fill="#1f2937"/>
-    {/* Ноги */}
     <rect x="72" y="170" width="11" height="18" fill="#1f2937" rx="2"/>
     <rect x="117" y="170" width="11" height="18" fill="#1f2937" rx="2"/>
-    {/* Вымя */}
     <ellipse cx="100" cy="172" rx="10" ry="6" fill="#fbcfe8"/>
-    {/* Голова */}
     <ellipse cx="100" cy="85" rx="42" ry="40" fill="white" stroke="#1f2937" strokeWidth="3"/>
-    {/* Пятно на голове */}
     <ellipse cx="118" cy="68" rx="11" ry="8" fill="#1f2937"/>
-    {/* Морда */}
     <ellipse cx="100" cy="103" rx="24" ry="16" fill="#fbcfe8" stroke="#1f2937" strokeWidth="2"/>
-    {/* Ноздри */}
     <ellipse cx="91" cy="103" rx="2.5" ry="3.5" fill="#1f2937"/>
     <ellipse cx="109" cy="103" rx="2.5" ry="3.5" fill="#1f2937"/>
-    {/* Улыбка */}
     <path d="M 92 112 Q 100 117 108 112" stroke="#1f2937" strokeWidth="2" fill="none" strokeLinecap="round"/>
-    {/* Глаза */}
     <circle cx="86" cy="78" r="5" fill="white" stroke="#1f2937" strokeWidth="1.5"/>
     <circle cx="114" cy="78" r="5" fill="white" stroke="#1f2937" strokeWidth="1.5"/>
     <circle cx="86" cy="79" r="2.5" fill="#1f2937"/>
     <circle cx="114" cy="79" r="2.5" fill="#1f2937"/>
     <circle cx="87" cy="78" r="1" fill="white"/>
     <circle cx="115" cy="78" r="1" fill="white"/>
-    {/* Уши */}
     <ellipse cx="62" cy="68" rx="11" ry="16" fill="white" stroke="#1f2937" strokeWidth="2.5" transform="rotate(-35 62 68)"/>
     <ellipse cx="138" cy="68" rx="11" ry="16" fill="white" stroke="#1f2937" strokeWidth="2.5" transform="rotate(35 138 68)"/>
-    {/* Рожки */}
     <ellipse cx="78" cy="50" rx="5" ry="10" fill="#f5e6c8" stroke="#1f2937" strokeWidth="2"/>
     <ellipse cx="122" cy="50" rx="5" ry="10" fill="#f5e6c8" stroke="#1f2937" strokeWidth="2"/>
 
-    {/* === КОСТЮМЫ === */}
     {outfit === 'santa' && (
       <g>
         <path d="M 65 52 Q 100 8 135 52 L 130 58 L 70 58 Z" fill="#dc2626" stroke="#1f2937" strokeWidth="2.5"/>
@@ -148,21 +149,11 @@ const Cow = ({ outfit = 'none', size = 160 }) => (
   </svg>
 );
 
-// === МАЛЕНЬКАЯ БУРЁНКА (иконка) ===
-
-const CowIcon = ({ size = 24, outfit = 'none' }) => (
-  <div className="inline-flex items-center justify-center" style={{ width: size, height: size }}>
-    <span style={{ fontSize: size * 0.9 }}>
-      {OUTFITS.find(o => o.id === outfit)?.emoji || '🐄'}
-    </span>
-  </div>
-);
-
 // === КАРТОЧКА ТОВАРА ===
 
 const ProductCard = ({ product, onClick, currency = 'rub' }) => (
   <div
-    onClick={() => onClick(product)}
+    onClick={() => onClick(product, currency)}
     className="group cursor-pointer bg-white rounded-2xl overflow-hidden border border-stone-200 hover:border-emerald-400 hover:shadow-lg transition-all"
   >
     <div className="aspect-square flex items-center justify-center text-7xl relative" style={{ backgroundColor: product.color }}>
@@ -190,7 +181,7 @@ const ProductCard = ({ product, onClick, currency = 'rub' }) => (
           {currency === 'cow' ? (
             <>{product.price} <span>🐄</span></>
           ) : (
-            <>{product.price.toLocaleString('ru-RU')} ₽</>
+            <>{fmtRub(product.price)}</>
           )}
         </div>
         <div className="text-xs text-stone-500">
@@ -203,8 +194,15 @@ const ProductCard = ({ product, onClick, currency = 'rub' }) => (
 
 // === МОДАЛКА ТОВАРА ===
 
-const ProductModal = ({ product, onClose, currency = 'rub' }) => {
+const ProductModal = ({ product, onClose, currency = 'rub', onAddToCart }) => {
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
+  const [added, setAdded] = useState(false);
+
+  const handleAdd = () => {
+    onAddToCart(product, selectedSize, currency);
+    setAdded(true);
+    setTimeout(() => onClose(), 600);
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -229,7 +227,7 @@ const ProductModal = ({ product, onClose, currency = 'rub' }) => {
             {currency === 'cow' ? (
               <>{product.price} <span>🐄</span></>
             ) : (
-              <>{product.price.toLocaleString('ru-RU')} ₽</>
+              <>{fmtRub(product.price)}</>
             )}
           </div>
 
@@ -263,16 +261,187 @@ const ProductModal = ({ product, onClose, currency = 'rub' }) => {
           </div>
 
           <button
-            disabled={!product.inStock}
-            className="mt-auto w-full bg-emerald-700 hover:bg-emerald-800 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-colors"
+            disabled={!product.inStock || added}
+            onClick={handleAdd}
+            className="mt-auto w-full bg-emerald-700 hover:bg-emerald-800 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
           >
-            {product.inStock ? 'В корзину' : 'Недоступно'}
+            {added ? (<><Check size={18} /> Добавлено в корзину</>) : (product.inStock ? 'В корзину' : 'Недоступно')}
           </button>
         </div>
       </div>
     </div>
   );
 };
+
+// === КОРЗИНА (DRAWER) ===
+
+const CartDrawer = ({ open, onClose, cart, totals, onUpdateQty, onRemove, onCheckout, user, onLogin }) => {
+  if (!open) return null;
+
+  const canCheckout = cart.length > 0 && (totals.totalCow === 0 || (user && user.balance >= totals.totalCow));
+  const cowProblem = totals.totalCow > 0 && (!user || user.balance < totals.totalCow);
+
+  return (
+    <div className="fixed inset-0 z-50">
+      <div className="absolute inset-0 bg-black/50 animate-fade" onClick={onClose} />
+      <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col">
+        <div className="p-6 border-b border-stone-200 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold">Корзина</h2>
+            <p className="text-sm text-stone-500">
+              {totals.totalQty} {plural(totals.totalQty, ['товар', 'товара', 'товаров'])}
+            </p>
+          </div>
+          <button onClick={onClose} className="text-stone-400 hover:text-stone-700">
+            <X size={24} />
+          </button>
+        </div>
+
+        {cart.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center p-6 text-center">
+            <div>
+              <div className="text-6xl mb-3 opacity-30">🛒</div>
+              <p className="text-stone-500 mb-1">Корзина пуста</p>
+              <p className="text-xs text-stone-400">Добавьте что-нибудь из каталога</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex-1 overflow-y-auto p-6 space-y-3">
+              {cart.map(item => (
+                <div key={`${item.id}-${item.size}`} className="flex gap-3 bg-stone-50 rounded-xl p-3">
+                  <div className="w-20 h-20 rounded-lg flex items-center justify-center text-4xl shrink-0" style={{ backgroundColor: item.color }}>
+                    {item.emoji}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm leading-snug mb-0.5 line-clamp-2">{item.name}</div>
+                    <div className="text-xs text-stone-500 mb-2">Размер: {item.size}</div>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1 bg-white rounded-lg border border-stone-200">
+                        <button
+                          onClick={() => onUpdateQty(item.id, item.size, -1)}
+                          className="px-2 py-1 hover:bg-stone-100 rounded-l-lg transition-colors"
+                        >
+                          <Minus size={12} />
+                        </button>
+                        <span className="px-2 text-sm font-medium min-w-[20px] text-center">{item.qty}</span>
+                        <button
+                          onClick={() => onUpdateQty(item.id, item.size, 1)}
+                          className="px-2 py-1 hover:bg-stone-100 rounded-r-lg transition-colors"
+                        >
+                          <Plus size={12} />
+                        </button>
+                      </div>
+                      <div className="font-bold text-sm whitespace-nowrap">
+                        {item.currency === 'cow'
+                          ? `${item.price * item.qty} 🐄`
+                          : fmtRub(item.price * item.qty)}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => onRemove(item.id, item.size)}
+                    className="text-stone-400 hover:text-rose-600 self-start transition-colors"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-stone-200 p-6 space-y-3 bg-stone-50/50">
+              {totals.totalRub > 0 && (
+                <div className="flex justify-between items-baseline">
+                  <span className="text-stone-600 text-sm">Оплата рублями</span>
+                  <span className="font-bold text-lg">{fmtRub(totals.totalRub)}</span>
+                </div>
+              )}
+              {totals.totalCow > 0 && (
+                <>
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-stone-600 text-sm">Оплата бурёнками</span>
+                    <span className="font-bold text-lg">{totals.totalCow} 🐄</span>
+                  </div>
+                  {user ? (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-stone-500">Остаток после покупки</span>
+                      <span className={user.balance >= totals.totalCow ? 'text-emerald-700 font-medium' : 'text-rose-600 font-medium'}>
+                        {user.balance - totals.totalCow} 🐄
+                        {user.balance < totals.totalCow && ' (не хватает)'}
+                      </span>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={onLogin}
+                      className="w-full text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg hover:bg-amber-100 transition-colors"
+                    >
+                      Войдите как сотрудник, чтобы оплатить бурёнками
+                    </button>
+                  )}
+                </>
+              )}
+              <button
+                onClick={onCheckout}
+                disabled={!canCheckout}
+                className="w-full bg-emerald-700 hover:bg-emerald-800 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-colors"
+              >
+                {cowProblem ? (user ? 'Недостаточно бурёнок' : 'Войдите для оплаты') : 'Оформить заказ'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// === МОДАЛКА УСПЕХА ===
+
+const OrderSuccessModal = ({ order, onClose }) => (
+  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="bg-white rounded-3xl max-w-md w-full p-8" onClick={e => e.stopPropagation()}>
+      <div className="text-center mb-6">
+        <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4 text-5xl">
+          🎉
+        </div>
+        <h2 className="text-2xl font-bold mb-2">Заказ оформлен!</h2>
+        <p className="text-stone-500 text-sm">Свяжемся с вами для подтверждения доставки</p>
+      </div>
+
+      <div className="bg-stone-50 rounded-xl p-4 mb-6">
+        <div className="text-xs font-semibold text-stone-500 uppercase mb-2">Состав заказа</div>
+        <div className="space-y-1.5">
+          {order.items.map(i => (
+            <div key={`${i.id}-${i.size}`} className="flex justify-between text-sm gap-2">
+              <span className="text-stone-700 truncate">{i.name} × {i.qty}</span>
+              <span className="font-medium whitespace-nowrap">
+                {i.currency === 'cow' ? `${i.price * i.qty} 🐄` : fmtRub(i.price * i.qty)}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-stone-200 mt-3 pt-3 space-y-1">
+          {order.totalRub > 0 && (
+            <div className="flex justify-between text-sm font-semibold">
+              <span>Итого рублями</span>
+              <span>{fmtRub(order.totalRub)}</span>
+            </div>
+          )}
+          {order.totalCow > 0 && (
+            <div className="flex justify-between text-sm font-semibold">
+              <span>Итого бурёнками</span>
+              <span>{order.totalCow} 🐄</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <button onClick={onClose} className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-medium py-3 rounded-xl">
+        Готово
+      </button>
+    </div>
+  </div>
+);
 
 // === МОДАЛКА АВТОРИЗАЦИИ ===
 
@@ -283,7 +452,6 @@ const LoginModal = ({ onClose, onLogin }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Валидация пароля
   const pwdChecks = {
     length: password.length >= 8,
     upper: /[A-ZА-Я]/.test(password),
@@ -295,19 +463,11 @@ const LoginModal = ({ onClose, onLogin }) => {
 
   const handleSubmit = () => {
     setError('');
-    if (!emailValid) {
-      setError('Введите корректный email');
-      return;
-    }
-    if (!pwdValid) {
-      setError('Пароль не соответствует требованиям');
-      return;
-    }
-
+    if (!emailValid) { setError('Введите корректный email'); return; }
+    if (!pwdValid) { setError('Пароль не соответствует требованиям'); return; }
     setLoading(true);
     // === ЗАГЛУШКА ВЫЗОВА БД ===
-    // TODO: здесь будет реальный запрос к API
-    // POST /api/auth/login { email, password }
+    // TODO: POST /api/auth/login { email, password }
     setTimeout(() => {
       if (email.toLowerCase() === 'korovka@ekoniva.com') {
         onLogin();
@@ -322,16 +482,14 @@ const LoginModal = ({ onClose, onLogin }) => {
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-3xl max-w-md w-full p-8" onClick={e => e.stopPropagation()}>
         <div className="flex items-start justify-between mb-6">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Cow size={50} />
-              <div>
-                <h2 className="text-2xl font-bold text-stone-900">Вход для своих</h2>
-                <p className="text-sm text-stone-500">Корпоративный портал ЭкоНивы</p>
-              </div>
+          <div className="flex items-center gap-2">
+            <Cow size={50} />
+            <div>
+              <h2 className="text-2xl font-bold text-stone-900">Вход для своих</h2>
+              <p className="text-sm text-stone-500">Корпоративный портал ЭкоНивы</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-stone-400 hover:text-stone-700 transition-colors">
+          <button onClick={onClose} className="text-stone-400 hover:text-stone-700">
             <X size={24} />
           </button>
         </div>
@@ -362,15 +520,10 @@ const LoginModal = ({ onClose, onLogin }) => {
                 placeholder="Например: Burenka2026!"
                 className="w-full pl-10 pr-10 py-2.5 border border-stone-300 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition-all"
               />
-              <button
-                type="button"
-                onClick={() => setShowPwd(s => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700"
-              >
+              <button type="button" onClick={() => setShowPwd(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700">
                 {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-
             {password.length > 0 && (
               <div className="mt-2 space-y-1 text-xs">
                 <PwdCheck ok={pwdChecks.length} text="Минимум 8 символов" />
@@ -387,11 +540,7 @@ const LoginModal = ({ onClose, onLogin }) => {
             </div>
           )}
 
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="w-full bg-emerald-700 hover:bg-emerald-800 disabled:bg-emerald-400 text-white font-medium py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
-          >
+          <button onClick={handleSubmit} disabled={loading} className="w-full bg-emerald-700 hover:bg-emerald-800 disabled:bg-emerald-400 text-white font-medium py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">
             {loading ? 'Проверяем...' : (<><LogIn size={18} /> Войти</>)}
           </button>
 
@@ -415,15 +564,19 @@ const PwdCheck = ({ ok, text }) => (
 // === ОСНОВНОЙ КОМПОНЕНТ ===
 
 export default function EkoNivaMerch() {
-  const [view, setView] = useState('shop'); // shop | dashboard
+  const [view, setView] = useState('shop');
   const [user, setUser] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedCurrency, setSelectedCurrency] = useState('rub');
   const [category, setCategory] = useState('Все');
   const [collection, setCollection] = useState('Все');
-  const [tab, setTab] = useState('profile'); // profile | history | drop
+  const [tab, setTab] = useState('profile');
   const [outfit, setOutfit] = useState('none');
-  const [cart, setCart] = useState(0);
+  const [cart, setCart] = useState([]);
+  const [showCart, setShowCart] = useState(false);
+  const [orderResult, setOrderResult] = useState(null);
+  const [historyState, setHistoryState] = useState(INITIAL_HISTORY);
 
   const filtered = useMemo(() => {
     return PRODUCTS.filter(p =>
@@ -432,15 +585,89 @@ export default function EkoNivaMerch() {
     );
   }, [category, collection]);
 
+  const totals = useMemo(() => {
+    const totalRub = cart.filter(i => i.currency === 'rub').reduce((s, i) => s + i.price * i.qty, 0);
+    const totalCow = cart.filter(i => i.currency === 'cow').reduce((s, i) => s + i.price * i.qty, 0);
+    const totalQty = cart.reduce((s, i) => s + i.qty, 0);
+    return { totalRub, totalCow, totalQty };
+  }, [cart]);
+
   const handleLogin = () => {
-    setUser(EMPLOYEE);
+    setUser({ ...EMPLOYEE });
     setShowLogin(false);
-    setView('shop');
   };
 
   const handleLogout = () => {
     setUser(null);
     setView('shop');
+  };
+
+  const openProduct = (product, currency) => {
+    setSelectedProduct(product);
+    setSelectedCurrency(currency);
+  };
+
+  const addToCart = (product, size, currency) => {
+    setCart(prev => {
+      const existing = prev.find(i => i.id === product.id && i.size === size);
+      if (existing) {
+        return prev.map(i =>
+          i.id === product.id && i.size === size ? { ...i, qty: i.qty + 1 } : i
+        );
+      }
+      return [...prev, {
+        id: product.id,
+        name: product.name,
+        emoji: product.emoji,
+        color: product.color,
+        price: product.price,
+        size,
+        qty: 1,
+        currency,
+        exclusive: !!product.exclusive,
+      }];
+    });
+  };
+
+  const removeFromCart = (id, size) => {
+    setCart(prev => prev.filter(i => !(i.id === id && i.size === size)));
+  };
+
+  const updateQty = (id, size, delta) => {
+    setCart(prev => prev
+      .map(i => (i.id === id && i.size === size) ? { ...i, qty: i.qty + delta } : i)
+      .filter(i => i.qty > 0)
+    );
+  };
+
+  const checkout = () => {
+    // === ЗАГЛУШКА ВЫЗОВА БД ===
+    // TODO: POST /api/orders { items, totalRub, totalCow, userId }
+    if (totals.totalCow > 0) {
+      if (!user || user.balance < totals.totalCow) return;
+
+      // списываем бурёнки
+      const today = new Date().toLocaleDateString('ru-RU');
+      const cowItems = cart.filter(i => i.currency === 'cow');
+      const newEntries = cowItems.map((item, idx) => ({
+        id: Date.now() + idx,
+        date: today,
+        desc: `Покупка: ${item.name}${item.qty > 1 ? ` ×${item.qty}` : ''}`,
+        amount: -(item.price * item.qty),
+        type: 'out',
+      }));
+
+      setUser(u => ({ ...u, balance: u.balance - totals.totalCow }));
+      setHistoryState(prev => [...newEntries, ...prev]);
+    }
+
+    setOrderResult({
+      items: cart,
+      totalRub: totals.totalRub,
+      totalCow: totals.totalCow,
+    });
+    setCart([]);
+    setShowCart(false);
   };
 
   return (
@@ -450,9 +677,7 @@ export default function EkoNivaMerch() {
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-6">
           <div className="flex items-center gap-8">
             <button onClick={() => setView('shop')} className="flex items-center gap-2 group">
-              <div className="w-8 h-8 bg-emerald-700 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                Э
-              </div>
+              <div className="w-8 h-8 bg-emerald-700 rounded-lg flex items-center justify-center text-white font-bold text-sm">Э</div>
               <span className="font-bold text-lg tracking-tight">ЭкоНива <span className="text-emerald-700">Merch</span></span>
             </button>
             <nav className="hidden md:flex items-center gap-6 text-sm text-stone-600">
@@ -482,18 +707,15 @@ export default function EkoNivaMerch() {
                 </button>
               </>
             ) : (
-              <button
-                onClick={() => setShowLogin(true)}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50 rounded-full transition-colors"
-              >
+              <button onClick={() => setShowLogin(true)} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50 rounded-full transition-colors">
                 <LogIn size={16} /> Войти
               </button>
             )}
-            <button className="relative p-2 hover:bg-stone-100 rounded-full transition-colors">
+            <button onClick={() => setShowCart(true)} className="relative p-2 hover:bg-stone-100 rounded-full transition-colors">
               <ShoppingCart size={20} />
-              {cart > 0 && (
-                <span className="absolute -top-1 -right-1 bg-emerald-700 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  {cart}
+              {totals.totalQty > 0 && (
+                <span className="absolute -top-1 -right-1 bg-emerald-700 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                  {totals.totalQty}
                 </span>
               )}
             </button>
@@ -501,10 +723,9 @@ export default function EkoNivaMerch() {
         </div>
       </header>
 
-      {/* === КОНТЕНТ === */}
+      {/* === КАТАЛОГ === */}
       {view === 'shop' && (
         <>
-          {/* HERO */}
           <section className="max-w-7xl mx-auto px-6 pt-10 pb-8">
             <div className="bg-gradient-to-br from-emerald-700 via-emerald-600 to-emerald-800 rounded-3xl overflow-hidden relative">
               <div className="grid md:grid-cols-2 items-center gap-6 p-8 md:p-12">
@@ -512,9 +733,7 @@ export default function EkoNivaMerch() {
                   <div className="inline-block bg-white/15 backdrop-blur-sm border border-white/20 text-xs font-semibold px-3 py-1 rounded-full mb-4">
                     Новая коллекция · Лето 2026
                   </div>
-                  <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-                    Носите поле<br/>с собой
-                  </h1>
+                  <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">Носите поле<br/>с собой</h1>
                   <p className="text-emerald-50 mb-6 max-w-md">
                     Эко-мерч из натуральных тканей. Сделано с заботой о людях и природе — как и всё, что мы делаем.
                   </p>
@@ -532,7 +751,6 @@ export default function EkoNivaMerch() {
             </div>
           </section>
 
-          {/* ФИЛЬТРЫ */}
           <section className="max-w-7xl mx-auto px-6 mb-8">
             <div className="space-y-4">
               <div>
@@ -543,13 +761,9 @@ export default function EkoNivaMerch() {
                       key={c}
                       onClick={() => setCategory(c)}
                       className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        category === c
-                          ? 'bg-stone-900 text-white'
-                          : 'bg-white text-stone-700 border border-stone-200 hover:border-stone-400'
+                        category === c ? 'bg-stone-900 text-white' : 'bg-white text-stone-700 border border-stone-200 hover:border-stone-400'
                       }`}
-                    >
-                      {c}
-                    </button>
+                    >{c}</button>
                   ))}
                 </div>
               </div>
@@ -561,26 +775,21 @@ export default function EkoNivaMerch() {
                       key={c}
                       onClick={() => setCollection(c)}
                       className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        collection === c
-                          ? 'bg-emerald-700 text-white'
-                          : 'bg-white text-stone-700 border border-stone-200 hover:border-emerald-400'
+                        collection === c ? 'bg-emerald-700 text-white' : 'bg-white text-stone-700 border border-stone-200 hover:border-emerald-400'
                       }`}
-                    >
-                      {c}
-                    </button>
+                    >{c}</button>
                   ))}
                 </div>
               </div>
             </div>
           </section>
 
-          {/* СЕТКА ТОВАРОВ */}
           <section className="max-w-7xl mx-auto px-6 pb-16">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-xl font-bold">
                 {category === 'Все' && collection === 'Все' ? 'Все товары' : `${category !== 'Все' ? category : ''} ${collection !== 'Все' ? `· ${collection}` : ''}`}
               </h2>
-              <span className="text-sm text-stone-500">{filtered.length} {filtered.length === 1 ? 'товар' : 'товаров'}</span>
+              <span className="text-sm text-stone-500">{filtered.length} {plural(filtered.length, ['товар', 'товара', 'товаров'])}</span>
             </div>
             {filtered.length === 0 ? (
               <div className="bg-white rounded-2xl p-12 text-center text-stone-500 border border-stone-200">
@@ -589,7 +798,7 @@ export default function EkoNivaMerch() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {filtered.map(p => (
-                  <ProductCard key={p.id} product={p} onClick={setSelectedProduct} />
+                  <ProductCard key={p.id} product={p} onClick={openProduct} />
                 ))}
               </div>
             )}
@@ -597,7 +806,7 @@ export default function EkoNivaMerch() {
         </>
       )}
 
-      {/* === DASHBOARD === */}
+      {/* === ЛИЧНЫЙ КАБИНЕТ === */}
       {view === 'dashboard' && user && (
         <section className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center gap-2 text-sm text-stone-500 mb-6">
@@ -606,24 +815,22 @@ export default function EkoNivaMerch() {
             <span className="text-stone-900">Личный кабинет</span>
           </div>
 
-          {/* Табы */}
           <div className="flex flex-wrap gap-1 mb-6 bg-white p-1 rounded-2xl border border-stone-200 w-fit">
             <TabButton active={tab === 'profile'} onClick={() => setTab('profile')} icon={<User size={16} />} label="Профиль" />
             <TabButton active={tab === 'history'} onClick={() => setTab('history')} icon={<History size={16} />} label="История бурёнок" />
             <TabButton active={tab === 'drop'} onClick={() => setTab('drop')} icon={<Package size={16} />} label="Корпоративный дроп" />
           </div>
 
-          {/* === ПРОФИЛЬ === */}
           {tab === 'profile' && (
             <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-1 bg-white rounded-2xl p-6 border border-stone-200">
                 <div className="flex flex-col items-center text-center">
-                  <div className="w-44 h-44 bg-gradient-to-br from-emerald-50 to-amber-50 rounded-2xl flex items-center justify-center mb-4 relative">
+                  <div className="w-44 h-44 bg-gradient-to-br from-emerald-50 to-amber-50 rounded-2xl flex items-center justify-center mb-4">
                     <Cow size={160} outfit={outfit} />
                   </div>
                   <h3 className="text-xl font-bold mb-1">{user.name}</h3>
                   <p className="text-sm text-stone-500 mb-4">{user.position}</p>
-                  <div className="w-full bg-amber-50 border border-amber-200 rounded-xl p-4 mb-2">
+                  <div className="w-full bg-amber-50 border border-amber-200 rounded-xl p-4">
                     <div className="text-xs text-amber-700 mb-1">Баланс</div>
                     <div className="text-3xl font-bold text-amber-900 flex items-center justify-center gap-2">
                       {user.balance} <span>{OUTFITS.find(o => o.id === outfit)?.emoji}</span>
@@ -657,9 +864,7 @@ export default function EkoNivaMerch() {
                         key={o.id}
                         onClick={() => setOutfit(o.id)}
                         className={`flex flex-col items-center gap-1 p-3 rounded-xl transition-all border-2 ${
-                          outfit === o.id
-                            ? 'border-emerald-700 bg-emerald-50'
-                            : 'border-stone-200 hover:border-stone-400 bg-white'
+                          outfit === o.id ? 'border-emerald-700 bg-emerald-50' : 'border-stone-200 hover:border-stone-400 bg-white'
                         }`}
                       >
                         <div className="text-2xl">{o.emoji}</div>
@@ -670,10 +875,7 @@ export default function EkoNivaMerch() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-stone-700 bg-white border border-stone-300 rounded-xl hover:bg-stone-50 transition-colors"
-                  >
+                  <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-stone-700 bg-white border border-stone-300 rounded-xl hover:bg-stone-50 transition-colors">
                     <LogOut size={16} /> Выйти
                   </button>
                 </div>
@@ -681,13 +883,12 @@ export default function EkoNivaMerch() {
             </div>
           )}
 
-          {/* === ИСТОРИЯ === */}
           {tab === 'history' && (
             <div className="space-y-6">
               <div className="grid sm:grid-cols-3 gap-4">
                 <StatCard label="Текущий баланс" value={`${user.balance} 🐄`} accent="amber" />
-                <StatCard label="Начислено за всё время" value={`+${HISTORY.filter(h => h.type === 'in').reduce((s, h) => s + h.amount, 0)} 🐄`} accent="emerald" />
-                <StatCard label="Потрачено" value={`${HISTORY.filter(h => h.type === 'out').reduce((s, h) => s + h.amount, 0)} 🐄`} accent="rose" />
+                <StatCard label="Начислено за всё время" value={`+${historyState.filter(h => h.type === 'in').reduce((s, h) => s + h.amount, 0)} 🐄`} accent="emerald" />
+                <StatCard label="Потрачено" value={`${historyState.filter(h => h.type === 'out').reduce((s, h) => s + h.amount, 0)} 🐄`} accent="rose" />
               </div>
 
               <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden">
@@ -695,13 +896,11 @@ export default function EkoNivaMerch() {
                   <h3 className="font-bold text-lg">История начислений</h3>
                   <p className="text-sm text-stone-500">Все движения корпоративной валюты</p>
                 </div>
-                <div className="divide-y divide-stone-100">
-                  {HISTORY.map(h => (
+                <div className="divide-y divide-stone-100 max-h-[600px] overflow-y-auto">
+                  {historyState.map(h => (
                     <div key={h.id} className="px-6 py-4 flex items-center justify-between hover:bg-stone-50">
                       <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          h.type === 'in' ? 'bg-emerald-50' : 'bg-rose-50'
-                        }`}>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${h.type === 'in' ? 'bg-emerald-50' : 'bg-rose-50'}`}>
                           <span className="text-xl">{h.type === 'in' ? '🐄' : '🛒'}</span>
                         </div>
                         <div>
@@ -719,7 +918,6 @@ export default function EkoNivaMerch() {
             </div>
           )}
 
-          {/* === КОРПОРАТИВНЫЙ ДРОП === */}
           {tab === 'drop' && (
             <div className="space-y-6">
               <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 rounded-2xl p-6 text-white flex items-center justify-between flex-wrap gap-4">
@@ -728,7 +926,7 @@ export default function EkoNivaMerch() {
                     <Sparkles size={12} /> Только для сотрудников
                   </div>
                   <h2 className="text-2xl font-bold mb-1">Лимитная корпоративная линейка</h2>
-                  <p className="text-emerald-50 text-sm">Эксклюзивный мерч, которого нет в открытом доступе. Оплата — бурёнками.</p>
+                  <p className="text-emerald-50 text-sm">Эксклюзивный мерч, которого нет в открытом доступе.</p>
                 </div>
                 <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 text-center">
                   <div className="text-xs text-emerald-50">Ваш баланс</div>
@@ -738,7 +936,7 @@ export default function EkoNivaMerch() {
 
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {CORPORATE_PRODUCTS.map(p => (
-                  <ProductCard key={p.id} product={p} onClick={setSelectedProduct} currency="cow" />
+                  <ProductCard key={p.id} product={p} onClick={openProduct} currency="cow" />
                 ))}
               </div>
             </div>
@@ -746,7 +944,6 @@ export default function EkoNivaMerch() {
         </section>
       )}
 
-      {/* === ФУТЕР === */}
       <footer className="border-t border-stone-200 bg-white">
         <div className="max-w-7xl mx-auto px-6 py-8 flex flex-wrap items-center justify-between gap-4 text-sm text-stone-500">
           <div className="flex items-center gap-2">
@@ -766,10 +963,27 @@ export default function EkoNivaMerch() {
         <ProductModal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
-          currency={selectedProduct.exclusive ? 'cow' : 'rub'}
+          currency={selectedProduct.exclusive ? 'cow' : selectedCurrency}
+          onAddToCart={addToCart}
         />
       )}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} onLogin={handleLogin} />}
+
+      <CartDrawer
+        open={showCart}
+        onClose={() => setShowCart(false)}
+        cart={cart}
+        totals={totals}
+        onUpdateQty={updateQty}
+        onRemove={removeFromCart}
+        onCheckout={checkout}
+        user={user}
+        onLogin={() => { setShowCart(false); setShowLogin(true); }}
+      />
+
+      {orderResult && (
+        <OrderSuccessModal order={orderResult} onClose={() => setOrderResult(null)} />
+      )}
     </div>
   );
 }
